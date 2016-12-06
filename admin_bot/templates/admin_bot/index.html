@@ -1,0 +1,137 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+$( document ).ready(function() {
+
+    // using jQuery
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
+
+    function send_request(id) {
+        var login = $("#login").val().replace(/\s{2,}/g, ' ');
+        var password = $("#password").val().replace(/\s{2,}/g, ' ');
+        var group = $("#group").val().replace(/\s{2,}/g, ' ');
+        
+
+        if (login === "" || password === "" || group === "") {
+            alert("Заполните поля");
+        } else {
+            console.log(this);
+            var params = {
+                "login": login, 
+                "password": password,
+                "link": group,
+                "action": id
+            }
+        
+            // Initialize the HTTP request.
+            var xhr = new XMLHttpRequest();
+            xhr.open('post', '/action/');
+
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+            // Track the state changes of the request.
+            xhr.onreadystatechange = function () {
+                var DONE = 4; // readyState 4 means the request is done.
+                var OK = 200; // status 200 is a successful return.
+                if (xhr.readyState === DONE) {
+                    if (xhr.status === OK) {alert(12)
+                        alert(xhr.responseText); // 'This is the returned text.'
+                    } else {
+                        alert('Error: ' + xhr.status); // An error occurred during the request.
+                    }
+                }
+            };
+
+            // Send the request to send-ajax-data.php
+            xhr.send(JSON.stringify(params));
+        }            
+    }
+    $("#enter").click(function(e) {
+        send_request(this.id);
+    });
+
+    $("#like").click(function(e) {
+        send_request(this.id);
+    });
+
+    $("#exit").click(function(e) {
+        send_request(this.id);
+    });
+});
+</script>
+</head>
+<body>
+    <label for="login">Логин<label>
+    <input type="text" id="login" size="40" >
+    <br><br>
+    <label for="login">Пароль<label>
+    <input type="text" id="password" size="40">
+    <br><br>
+    <label for="login">Ссылка на группу вконтакте<label>
+    <input type="text" id="group" size="40">
+    <br><br>
+
+    <form name="test" method="post" action="">{% csrf_token %}
+        <input type="submit" value="Вход в аккаунт" id="enter">
+        <br><br>
+        <input type="submit" value="Лайк поста группы" id="like">
+        <br><br>
+        <input type="submit" value="Выход из аккаунта" id="exit">
+    </form>
+
+    </form>
+
+    <input type="checkbox" name="vehicle" value="Car" checked> I have a car<br>
+
+    <table>
+    
+    <tr>
+        <th>Задача</th>
+        <th>Результат</th>
+        <th>Логин</th>
+        <th>Пароль</th>
+        <th>Ссылка</th>
+    </tr>    
+    
+    {% for task in tasks %}
+    <tr>
+        <td>{{ task.text }}</td>
+        <td>{{ task.result }}</td>
+        <td>{{ task.login }}</td>
+        <td>{{ task.password }}</td>
+        <td>{{ task.link }}</td>                        
+    </tr>
+    {% endfor %}
+    </table>
+</body>
+</html>
